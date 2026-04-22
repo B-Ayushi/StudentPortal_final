@@ -12,7 +12,7 @@
 'use strict';
 
 // ─── Config ──────────────────────────────────────────
-const API = 'http://localhost:5000/api';
+const API = '/api';
 
 // ─── State ───────────────────────────────────────────
 let currentProjectId = null;  // project being uploaded to
