@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Student Project Portal — OCI Cloud</title>
-  <meta name="description" content="A scalable student project submission system built on Oracle Cloud Infrastructure. Upload project files, track submissions, powered by OCI Object Storage and Autonomous Database." />
+  <title>Student Project Portal — Cloud App</title>
+  <meta name="description" content="A scalable student project submission system. Upload project files, track submissions, powered by Supabase and deployed on Render." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -17,7 +17,7 @@
     <div class="nav-brand">
       <div class="brand-logo">🎓</div>
       <span class="brand-name">ProjectVault</span>
-      <span class="brand-badge">OCI</span>
+      <span class="brand-badge">Cloud</span>
     </div>
     <div class="nav-links" id="navLinks">
       <a href="#" class="nav-link" id="navHome" onclick="showPage('home')">Home</a>
@@ -43,24 +43,24 @@
       <div class="hero-content">
         <div class="hero-tag">
           <span class="dot"></span>
-          Powered by Oracle Cloud Infrastructure
+          Powered by Supabase & Render
         </div>
         <h1 class="hero-title">
           Submit Your Projects<br />
           <span class="gradient-text">at Cloud Scale</span>
         </h1>
         <p class="hero-subtitle">
-          A scalable web portal built on OCI — upload project files to Object Storage,
-          store metadata in Autonomous Database, and access everything through secure REST APIs.
+          A scalable web portal — upload project files to cloud storage,
+          store metadata in a managed database, and access everything through secure REST APIs.
         </p>
         <div class="hero-cta">
           <button class="btn btn-hero" id="heroGetStarted" onclick="showPage('register')">Get Started Free</button>
           <button class="btn btn-ghost-hero" onclick="showPage('login')">Sign In →</button>
         </div>
         <div class="hero-stats">
-          <div class="stat"><span class="stat-num">OCI ATP</span><span class="stat-label">Autonomous DB</span></div>
+          <div class="stat"><span class="stat-num">DB</span><span class="stat-label">Database</span></div>
           <div class="stat-divider"></div>
-          <div class="stat"><span class="stat-num">OCI OS</span><span class="stat-label">Object Storage</span></div>
+          <div class="stat"><span class="stat-num">Storage</span><span class="stat-label">Cloud Storage</span></div>
           <div class="stat-divider"></div>
           <div class="stat"><span class="stat-num">JWT</span><span class="stat-label">Secure Auth</span></div>
         </div>
@@ -70,17 +70,17 @@
           <div class="arch-layer" style="--delay:0s">
             <div class="arch-icon">🌐</div>
             <div class="arch-info">
-              <span class="arch-name">OCI Load Balancer</span>
-              <span class="arch-desc">Distributes traffic</span>
+              <span class="arch-name">Frontend</span>
+              <span class="arch-desc">Responsive web interface</span>
             </div>
-            <div class="arch-badge green">Active</div>
+            <div class="arch-badge green">Live</div>
           </div>
           <div class="arch-arrow">↓</div>
           <div class="arch-layer" style="--delay:0.2s">
             <div class="arch-icon">⚙️</div>
             <div class="arch-info">
               <span class="arch-name">Node.js Backend</span>
-              <span class="arch-desc">REST API on OCI VM</span>
+              <span class="arch-desc">REST API on Render</span>
             </div>
             <div class="arch-badge blue">Running</div>
           </div>
@@ -89,14 +89,14 @@
             <div class="arch-layer half" style="--delay:0.4s">
               <div class="arch-icon">🗄️</div>
               <div class="arch-info">
-                <span class="arch-name">ATP DB</span>
+                <span class="arch-name">Supabase DB</span>
                 <span class="arch-desc">Metadata</span>
               </div>
             </div>
             <div class="arch-layer half" style="--delay:0.6s">
               <div class="arch-icon">📦</div>
               <div class="arch-info">
-                <span class="arch-name">Object Storage</span>
+                <span class="arch-name">Supabase Storage</span>
                 <span class="arch-desc">Files</span>
               </div>
             </div>
@@ -107,38 +107,38 @@
 
     <!-- Features -->
     <div class="features-section">
-      <h2 class="section-title">Every OCI Service Explained</h2>
+      <h2 class="section-title">How This Portal Works</h2>
       <p class="section-sub">Each component demonstrates a real cloud concept</p>
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon">👤</div>
-          <h3>User Auth (Module 1–2)</h3>
-          <p>Register and login with hashed passwords. JWT tokens secure every API call. In OCI: use IAM or Identity Domains for enterprise auth.</p>
+          <h3>User Auth</h3>
+          <p>Register and login with hashed passwords. JWT tokens secure every API call for protected actions like project submission and file management.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">📝</div>
-          <h3>Project Submission (Module 2–3)</h3>
-          <p>Structured metadata (title, description, tech stack) stored in Oracle Autonomous Database — the managed, self-tuning database on OCI.</p>
+          <h3>Project Submission</h3>
+          <p>Structured metadata like title, description, and tech stack is stored in a managed cloud database using Supabase PostgreSQL.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">📤</div>
-          <h3>File Upload (Module 4)</h3>
-          <p>Files (PDF, ZIP, images) stored in OCI Object Storage. Highly durable, regionally replicated, S3-compatible. Only metadata stays in DB.</p>
+          <h3>File Upload</h3>
+          <p>Files such as PDFs, ZIPs, and images are stored in Supabase Storage. Metadata remains in the database for easy lookup and tracking.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">🔌</div>
-          <h3>REST API (Module 5)</h3>
-          <p>All actions exposed as HTTP endpoints. In OCI: front the backend with API Gateway for authentication, rate limiting, and CORS policies.</p>
+          <h3>REST API</h3>
+          <p>All actions are handled through secure backend API endpoints for authentication, submissions, uploads, listing, downloads, and deletions.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">⚖️</div>
-          <h3>Load Balancing (Scaling)</h3>
-          <p>OCI Load Balancer distributes requests across multiple backend VMs. Add more Compute instances to handle thousands of simultaneous submissions.</p>
+          <div class="feature-icon">☁️</div>
+          <h3>Cloud Deployment</h3>
+          <p>The full-stack app runs in the cloud with a hosted backend and managed services, making it accessible from any device with a browser.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">📊</div>
-          <h3>Monitoring & Logging</h3>
-          <p>OCI Monitoring tracks CPU/memory/latency. Logging centralizes app logs. Alarms notify you when thresholds are crossed.</p>
+          <h3>Scalable Architecture</h3>
+          <p>The app separates frontend, backend, database, and storage concerns so it can grow cleanly as more users and files are added.</p>
         </div>
       </div>
     </div>
@@ -231,7 +231,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-card-icon">☁️</div>
-          <div><div class="stat-card-num">OCI</div><div class="stat-card-label">Object Storage</div></div>
+          <div><div class="stat-card-num">Live</div><div class="stat-card-label">Cloud App</div></div>
         </div>
       </div>
       <div class="projects-grid" id="projectsGrid">
@@ -280,7 +280,7 @@
           <form id="projectForm" onsubmit="handleProjectSubmit(event)">
             <div class="form-group">
               <label for="projTitle">Project Title *</label>
-              <input type="text" id="projTitle" class="form-input" placeholder="e.g. Scalable Student Portal on OCI" required />
+              <input type="text" id="projTitle" class="form-input" placeholder="e.g. Scalable Student Project Portal" required />
             </div>
             <div class="form-group">
               <label for="projDesc">Description</label>
@@ -288,7 +288,7 @@
             </div>
             <div class="form-group">
               <label for="projTech">Tech Stack</label>
-              <input type="text" id="projTech" class="form-input" placeholder="e.g. Node.js, OCI Compute, Object Storage, ATP" />
+              <input type="text" id="projTech" class="form-input" placeholder="e.g. Node.js, Render, Supabase, HTML, CSS, JS" />
             </div>
             <div class="form-error hidden" id="submitError"></div>
             <div class="form-actions">
@@ -309,7 +309,7 @@
           </div>
           <div class="file-list" id="fileList"></div>
           <div class="upload-info">
-            <p>📦 Files are stored in <strong>OCI Object Storage</strong> — locally in <code>/uploads</code> during development</p>
+            <p>📦 Files are stored in <strong>Supabase Storage</strong> during production and handled by the backend API.</p>
           </div>
           <div class="form-actions">
             <button class="btn btn-ghost" id="skipUpload" onclick="finishSubmission()">Skip & Finish</button>
@@ -322,7 +322,7 @@
           <div class="success-state">
             <div class="success-icon">✅</div>
             <h3>Project Submitted!</h3>
-            <p>Your project has been saved to the Autonomous Database and files are in Object Storage.</p>
+            <p>Your project has been saved to the database and files are stored in cloud storage.</p>
             <div class="success-actions">
               <button class="btn btn-primary" onclick="showPage('dashboard')">View Dashboard</button>
               <button class="btn btn-ghost" onclick="resetSubmitForm(); showPage('submit')">Submit Another</button>
