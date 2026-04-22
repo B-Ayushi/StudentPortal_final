@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Project Portal — OCI Cloud</title>
+  <meta name="description" content="A scalable student project submission system built on Oracle Cloud Infrastructure. Upload project files, track submissions, powered by OCI Object Storage and Autonomous Database." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════ NAVBAR ══════════ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand">
+      <div class="brand-logo">🎓</div>
+      <span class="brand-name">ProjectVault</span>
+      <span class="brand-badge">OCI</span>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="#" class="nav-link" id="navHome" onclick="showPage('home')">Home</a>
+      <a href="#" class="nav-link hidden" id="navDashboard" onclick="showPage('dashboard')">Dashboard</a>
+      <a href="#" class="nav-link hidden" id="navSubmit" onclick="showPage('submit')">Submit Project</a>
+    </div>
+    <div class="nav-actions">
+      <div class="user-pill hidden" id="userPill">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <span id="userName">User</span>
+      </div>
+      <button class="btn btn-ghost hidden" id="btnLogout" onclick="logout()">Logout</button>
+      <button class="btn btn-primary" id="btnLogin" onclick="showPage('login')">Sign In</button>
+    </div>
+  </nav>
+
+  <!-- ══════════ PAGES ══════════ -->
+
+  <!-- ── HOME PAGE ── -->
+  <section class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-glow"></div>
+      <div class="hero-content">
+        <div class="hero-tag">
+          <span class="dot"></span>
+          Powered by Oracle Cloud Infrastructure
+        </div>
+        <h1 class="hero-title">
+          Submit Your Projects<br />
+          <span class="gradient-text">at Cloud Scale</span>
+        </h1>
+        <p class="hero-subtitle">
+          A scalable web portal built on OCI — upload project files to Object Storage,
+          store metadata in Autonomous Database, and access everything through secure REST APIs.
+        </p>
+        <div class="hero-cta">
+          <button class="btn btn-hero" id="heroGetStarted" onclick="showPage('register')">Get Started Free</button>
+          <button class="btn btn-ghost-hero" onclick="showPage('login')">Sign In →</button>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-num">OCI ATP</span><span class="stat-label">Autonomous DB</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-num">OCI OS</span><span class="stat-label">Object Storage</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-num">JWT</span><span class="stat-label">Secure Auth</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="arch-card">
+          <div class="arch-layer" style="--delay:0s">
+            <div class="arch-icon">🌐</div>
+            <div class="arch-info">
+              <span class="arch-name">OCI Load Balancer</span>
+              <span class="arch-desc">Distributes traffic</span>
+            </div>
+            <div class="arch-badge green">Active</div>
+          </div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-layer" style="--delay:0.2s">
+            <div class="arch-icon">⚙️</div>
+            <div class="arch-info">
+              <span class="arch-name">Node.js Backend</span>
+              <span class="arch-desc">REST API on OCI VM</span>
+            </div>
+            <div class="arch-badge blue">Running</div>
+          </div>
+          <div class="arch-arrow">↓</div>
+          <div class="arch-row">
+            <div class="arch-layer half" style="--delay:0.4s">
+              <div class="arch-icon">🗄️</div>
+              <div class="arch-info">
+                <span class="arch-name">ATP DB</span>
+                <span class="arch-desc">Metadata</span>
+              </div>
+            </div>
+            <div class="arch-layer half" style="--delay:0.6s">
+              <div class="arch-icon">📦</div>
+              <div class="arch-info">
+                <span class="arch-name">Object Storage</span>
+                <span class="arch-desc">Files</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="features-section">
+      <h2 class="section-title">Every OCI Service Explained</h2>
+      <p class="section-sub">Each component demonstrates a real cloud concept</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">👤</div>
+          <h3>User Auth (Module 1–2)</h3>
+          <p>Register and login with hashed passwords. JWT tokens secure every API call. In OCI: use IAM or Identity Domains for enterprise auth.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📝</div>
+          <h3>Project Submission (Module 2–3)</h3>
+          <p>Structured metadata (title, description, tech stack) stored in Oracle Autonomous Database — the managed, self-tuning database on OCI.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📤</div>
+          <h3>File Upload (Module 4)</h3>
+          <p>Files (PDF, ZIP, images) stored in OCI Object Storage. Highly durable, regionally replicated, S3-compatible. Only metadata stays in DB.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔌</div>
+          <h3>REST API (Module 5)</h3>
+          <p>All actions exposed as HTTP endpoints. In OCI: front the backend with API Gateway for authentication, rate limiting, and CORS policies.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚖️</div>
+          <h3>Load Balancing (Scaling)</h3>
+          <p>OCI Load Balancer distributes requests across multiple backend VMs. Add more Compute instances to handle thousands of simultaneous submissions.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Monitoring & Logging</h3>
+          <p>OCI Monitoring tracks CPU/memory/latency. Logging centralizes app logs. Alarms notify you when thresholds are crossed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── LOGIN PAGE ── -->
+  <section class="page" id="page-login">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">🔐</div>
+          <h2>Welcome Back</h2>
+          <p>Sign in to your ProjectVault account</p>
+        </div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" class="form-input" placeholder="you@university.edu" required />
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required />
+          </div>
+          <div class="form-error hidden" id="loginError"></div>
+          <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+            <span class="btn-text">Sign In</span>
+            <span class="btn-loader hidden">⟳</span>
+          </button>
+        </form>
+        <div class="auth-footer">
+          Don't have an account? <a href="#" onclick="showPage('register')">Create one →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── REGISTER PAGE ── -->
+  <section class="page" id="page-register">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">🎓</div>
+          <h2>Create Account</h2>
+          <p>Join ProjectVault and start submitting</p>
+        </div>
+        <form id="registerForm" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label for="regName">Full Name</label>
+            <input type="text" id="regName" class="form-input" placeholder="Ayush Sharma" required />
+          </div>
+          <div class="form-group">
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" class="form-input" placeholder="ayush@university.edu" required />
+          </div>
+          <div class="form-group">
+            <label for="regPassword">Password</label>
+            <input type="password" id="regPassword" class="form-input" placeholder="Min 6 characters" required minlength="6" />
+          </div>
+          <div class="form-error hidden" id="registerError"></div>
+          <button type="submit" class="btn btn-primary btn-block" id="registerBtn">
+            <span class="btn-text">Create Account</span>
+            <span class="btn-loader hidden">⟳</span>
+          </button>
+        </form>
+        <div class="auth-footer">
+          Already have an account? <a href="#" onclick="showPage('login')">Sign in →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DASHBOARD PAGE ── -->
+  <section class="page" id="page-dashboard">
+    <div class="dashboard">
+      <div class="dash-header">
+        <div>
+          <h2 class="dash-title">My Submissions</h2>
+          <p class="dash-sub">Track all your project submissions</p>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('submit')">+ New Submission</button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-icon">📝</div>
+          <div><div class="stat-card-num" id="totalProjects">0</div><div class="stat-card-label">Projects</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">📎</div>
+          <div><div class="stat-card-num" id="totalFiles">0</div><div class="stat-card-label">Files Uploaded</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">☁️</div>
+          <div><div class="stat-card-num">OCI</div><div class="stat-card-label">Object Storage</div></div>
+        </div>
+      </div>
+      <div class="projects-grid" id="projectsGrid">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">📂</div>
+          <h3>No projects yet</h3>
+          <p>Submit your first project to get started</p>
+          <button class="btn btn-primary" onclick="showPage('submit')">Submit Project</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SUBMIT PROJECT PAGE ── -->
+  <section class="page" id="page-submit">
+    <div class="form-page">
+      <div class="form-card">
+        <div class="form-card-header">
+          <div class="form-card-icon">📤</div>
+          <div>
+            <h2>Submit Project</h2>
+            <p>Fill in details and upload your project files</p>
+          </div>
+        </div>
+
+        <!-- Step indicator -->
+        <div class="steps">
+          <div class="step active" id="step1">
+            <div class="step-num">1</div>
+            <span>Project Info</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" id="step2">
+            <div class="step-num">2</div>
+            <span>Upload Files</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" id="step3">
+            <div class="step-num">3</div>
+            <span>Done</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Project Info -->
+        <div id="submitStep1">
+          <form id="projectForm" onsubmit="handleProjectSubmit(event)">
+            <div class="form-group">
+              <label for="projTitle">Project Title *</label>
+              <input type="text" id="projTitle" class="form-input" placeholder="e.g. Scalable Student Portal on OCI" required />
+            </div>
+            <div class="form-group">
+              <label for="projDesc">Description</label>
+              <textarea id="projDesc" class="form-input" rows="4" placeholder="Describe your project, objectives, and implementation..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="projTech">Tech Stack</label>
+              <input type="text" id="projTech" class="form-input" placeholder="e.g. Node.js, OCI Compute, Object Storage, ATP" />
+            </div>
+            <div class="form-error hidden" id="submitError"></div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-ghost" onclick="showPage('dashboard')">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="submitProjectBtn">Save & Continue →</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 2: Upload Files -->
+        <div id="submitStep2" class="hidden">
+          <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon">📁</div>
+            <h3>Drop files here</h3>
+            <p>or click to browse — PDF, ZIP, images, documents (max 20MB each)</p>
+            <input type="file" id="fileInput" multiple accept=".pdf,.zip,.png,.jpg,.jpeg,.gif,.txt,.doc,.docx" style="display:none" onchange="handleFiles(this.files)" />
+            <button class="btn btn-ghost" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+          </div>
+          <div class="file-list" id="fileList"></div>
+          <div class="upload-info">
+            <p>📦 Files are stored in <strong>OCI Object Storage</strong> — locally in <code>/uploads</code> during development</p>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" id="skipUpload" onclick="finishSubmission()">Skip & Finish</button>
+            <button class="btn btn-primary" onclick="finishSubmission()">Finish →</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Success -->
+        <div id="submitStep3" class="hidden">
+          <div class="success-state">
+            <div class="success-icon">✅</div>
+            <h3>Project Submitted!</h3>
+            <p>Your project has been saved to the Autonomous Database and files are in Object Storage.</p>
+            <div class="success-actions">
+              <button class="btn btn-primary" onclick="showPage('dashboard')">View Dashboard</button>
+              <button class="btn btn-ghost" onclick="resetSubmitForm(); showPage('submit')">Submit Another</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PROJECT DETAIL MODAL ── -->
+  <div class="modal-overlay hidden" id="projectModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- ── TOAST ── -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
