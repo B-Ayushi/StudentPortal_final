@@ -138,13 +138,29 @@ router.delete('/:fileId', async (req, res) => {
 
     if (!file) return res.status(404).json({ error: 'File not found' });
 
+    console.log('Deleting from Supabase:', {
+      bucket: file.bucket_name,
+      object: file.object_name,
+      url: file.file_url
+    });
+
     const { data, error } = await supabase.storage
-      .from(file.bucket_name)
+      .from(file.bucket_name || 'studentsubmission')
       .remove([file.object_name]);
+
+    console.log('Supabase delete result:', { data, error });
 
     if (error) {
       return res.status(500).json({
         error: `Supabase storage delete failed: ${error.message}`
+      });
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(500).json({
+        error: 'Supabase did not delete anything. Object path may be wrong.',
+        bucket: file.bucket_name,
+        object_name: file.object_name
       });
     }
 
@@ -155,6 +171,7 @@ router.delete('/:fileId', async (req, res) => {
       deleted: data
     });
   } catch (err) {
+    console.error('Delete file error:', err);
     res.status(500).json({ error: err.message });
   }
 });
