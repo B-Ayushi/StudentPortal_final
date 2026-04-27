@@ -138,37 +138,90 @@ router.delete('/:fileId', async (req, res) => {
 
     if (!file) return res.status(404).json({ error: 'File not found' });
 
-    console.log('Deleting from Supabase:', {
-      bucket: file.bucket_name,
-      object: file.object_name,
-      url: file.file_url
-    });
+    const bucket = file.bucket_name || 'studentsubmission';
+    console.log('=== Starting Supabase Storage deletion ===');
+    console.log('file_id:', req.params.fileId);
+    console.log('bucket_name:', bucket);
+    console.log('object_name:', file.object_name);
+    console.log('file_url:', file.file_url);
 
-    const { data, error } = await supabase.storage
-      .from(file.bucket_name || 'studentsubmission')
+    let deleteResult = null;
+    let deletedPath = null;
+
+    // ─ Try deleting with object_name ─
+    const { data: deleteData, error: deleteError } = await supabase.storage
+      .from(bucket)
       .remove([file.object_name]);
 
-    console.log('Supabase delete result:', { data, error });
+    console.log('First delete attempt (object_name):', { data: deleteData, error: deleteError });
 
-    if (error) {
+    if (deleteError) {
+      console.error('Error during first deletion:', deleteError.message);
       return res.status(500).json({
-        error: `Supabase storage delete failed: ${error.message}`
+        error: `Supabase storage delete failed: ${deleteError.message}`
       });
     }
 
-    if (!data || data.length === 0) {
-      return res.status(500).json({
-        error: 'Supabase did not delete anything. Object path may be wrong.',
-        bucket: file.bucket_name,
-        object_name: file.object_name
-      });
+    // Check if deletion succeeded
+    if (deleteData && deleteData.length > 0) {
+      deleteResult = deleteData;
+      deletedPath = file.object_name;
+      console.log('Successfully deleted using object_name');
+    } else {
+      // ─ Fallback: extract path from file_url ─
+      console.log('object_name deletion returned empty, attempting fallback from file_url...');
+      
+      let extractedPath = null;
+      if (file.file_url) {
+        // Extract path after '/object/public/studentsubmission/'
+        const urlPattern = /\/object\/public\/[^/]+\/(.+)$/;
+        const match = file.file_url.match(urlPattern);
+        if (match) {
+          extractedPath = match[1];
+          console.log('extracted_path_from_url:', extractedPath);
+
+          const { data: fallbackData, error: fallbackError } = await supabase.storage
+            .from(bucket)
+            .remove([extractedPath]);
+
+          console.log('Second delete attempt (extracted path):', { data: fallbackData, error: fallbackError });
+
+          if (fallbackError) {
+            console.error('Error during fallback deletion:', fallbackError.message);
+            return res.status(500).json({
+              error: `Supabase storage delete failed during fallback: ${fallbackError.message}`
+            });
+          }
+
+          if (fallbackData && fallbackData.length > 0) {
+            deleteResult = fallbackData;
+            deletedPath = extractedPath;
+            console.log('Successfully deleted using extracted path from URL');
+          }
+        }
+      }
+
+      // If still nothing deleted, return error
+      if (!deleteResult || deleteResult.length === 0) {
+        console.error('Path mismatch: No object was deleted from Supabase Storage');
+        return res.status(500).json({
+          error: 'Storage path mismatch: Could not delete file from Supabase Storage. Tried both object_name and extracted path from URL.',
+          tried_object_name: file.object_name,
+          tried_extracted_path: extractedPath || 'could not extract from URL'
+        });
+      }
     }
 
+    console.log('Supabase Storage deletion successful');
+    console.log('deleted_path:', deletedPath);
+
+    // Only delete database row after successful Supabase deletion
     await db.prepare('DELETE FROM files WHERE file_id = ?').run(req.params.fileId);
 
     res.json({
       message: 'File deleted from Supabase Storage and database',
-      deleted: data
+      deleted_path: deletedPath,
+      result: deleteResult
     });
   } catch (err) {
     console.error('Delete file error:', err);
