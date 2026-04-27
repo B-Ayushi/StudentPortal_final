@@ -126,129 +126,49 @@ router.get('/:projectId', async (req, res) => {
 });
 
 // ── Delete file ────────────────────────────────────────
+// ── Delete file ────────────────────────────────────────
 router.delete('/:fileId', async (req, res) => {
+  const { fileId } = req.params;
+
   try {
     const db = getDB();
 
+    console.log('🔥 DELETE FILE ROUTE HIT:', fileId);
+
+    // 1. Get file info from DB + verify user owns project
     const file = await db.prepare(`
-      SELECT f.* FROM files f
+      SELECT f.object_name, f.bucket_name
+      FROM files f
       JOIN projects p ON f.project_id = p.project_id
       WHERE f.file_id = ? AND p.user_id = ?
-    `).get(req.params.fileId, req.user.user_id);
+    `).get(fileId, req.user.user_id);
 
-    if (!file) return res.status(404).json({ error: 'File not found' });
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
 
-    const bucket = file.bucket_name || 'studentsubmission';
-    console.log('\n\n════════════════════════════════════════');
-    console.log('🗑  DELETING FILE FROM SUPABASE STORAGE');
-    console.log('════════════════════════════════════════');
-    console.log('file_id:', req.params.fileId);
-    console.log('bucket_name:', bucket);
-    console.log('object_name from DB:', file.object_name);
-    console.log('file_url from DB:', file.file_url);
+    console.log('Deleting from Supabase:', file);
 
-    let deleteResult = null;
-    let deletedPath = null;
-    let storageDeleteFailed = false;
-
-    // ─ Try deleting with object_name ─
-    console.log('\n→ Attempting deletion with object_name...');
-    const { data: deleteData, error: deleteError } = await supabase.storage
-      .from(bucket)
+    // 2. Delete from Supabase Storage
+    const { data, error } = await supabase.storage
+      .from(file.bucket_name || BUCKET_NAME)
       .remove([file.object_name]);
 
-    console.log('Response from Supabase storage.remove():', {
-      data: deleteData,
-      error: deleteError ? deleteError.message : null,
-      success: !deleteError && deleteData && deleteData.length > 0
-    });
+    console.log('Supabase delete response:', { data, error });
 
-    if (deleteError) {
-      console.error('❌ ERROR during storage deletion:', deleteError.message);
-      storageDeleteFailed = true;
-    } else if (deleteData && deleteData.length > 0) {
-      deleteResult = deleteData;
-      deletedPath = file.object_name;
-      console.log('✅ Successfully deleted using object_name');
-    } else {
-      // ─ Fallback: extract path from file_url ─
-      console.log('\n→ object_name deletion returned empty array, trying fallback...');
-      
-      let extractedPath = null;
-      if (file.file_url) {
-        const urlPattern = /\/object\/public\/[^/]+\/(.+)$/;
-        const match = file.file_url.match(urlPattern);
-        if (match) {
-          extractedPath = match[1];
-          console.log('Extracted path from URL:', extractedPath);
-
-          console.log('→ Attempting deletion with extracted path...');
-          const { data: fallbackData, error: fallbackError } = await supabase.storage
-            .from(bucket)
-            .remove([extractedPath]);
-
-          console.log('Response from Supabase storage.remove() [fallback]:', {
-            data: fallbackData,
-            error: fallbackError ? fallbackError.message : null,
-            success: !fallbackError && fallbackData && fallbackData.length > 0
-          });
-
-          if (fallbackError) {
-            console.error('❌ ERROR during fallback deletion:', fallbackError.message);
-            storageDeleteFailed = true;
-          } else if (fallbackData && fallbackData.length > 0) {
-            deleteResult = fallbackData;
-            deletedPath = extractedPath;
-            console.log('✅ Successfully deleted using extracted path');
-          } else {
-            console.log('⚠️  Fallback deletion also returned empty array');
-          }
-        } else {
-          console.log('⚠️  Could not extract path from URL pattern');
-        }
-      } else {
-        console.log('⚠️  file_url is empty, cannot extract fallback path');
-      }
+    if (error) {
+      return res.status(500).json({ error: error.message });
     }
 
-    // Check final result
-    if (storageDeleteFailed) {
-      console.error('\n❌ STORAGE DELETE FAILED - NOT deleting DB row');
-      console.log('════════════════════════════════════════\n\n');
-      return res.status(500).json({
-        error: 'Supabase Storage deletion failed. Database row NOT deleted.',
-        details: 'Please check server logs for details.'
-      });
-    }
+    // 3. Delete DB record
+    await db.prepare(
+      'DELETE FROM files WHERE file_id = ?'
+    ).run(fileId);
 
-    if (!deleteResult || deleteResult.length === 0) {
-      console.error('\n❌ PATH MISMATCH - No object was deleted from Supabase Storage');
-      console.log('════════════════════════════════════════\n\n');
-      return res.status(500).json({
-        error: 'Storage path mismatch: Could not delete file from Supabase Storage.',
-        tried_object_name: file.object_name,
-        debug: 'Check server logs for details'
-      });
-    }
+    res.json({ success: true, deleted: data });
 
-    console.log('\n✅ Supabase Storage deletion successful!');
-    console.log('Deleted path:', deletedPath);
-    console.log('Result:', deleteResult);
-
-    // Only delete database row after successful Supabase deletion
-    console.log('\n→ Now deleting database row...');
-    await db.prepare('DELETE FROM files WHERE file_id = ?').run(req.params.fileId);
-    console.log('✅ Database row deleted');
-    console.log('════════════════════════════════════════\n\n');
-
-    res.json({
-      message: 'File deleted from Supabase Storage and database',
-      deleted_path: deletedPath,
-      result: deleteResult
-    });
   } catch (err) {
-    console.error('\n❌ EXCEPTION in delete route:', err);
-    console.log('════════════════════════════════════════\n\n');
+    console.error('Delete file error:', err);
     res.status(500).json({ error: err.message });
   }
 });
