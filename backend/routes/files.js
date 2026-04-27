@@ -7,23 +7,25 @@
  * Uses Supabase Storage for file hosting (replaces OCI Object Storage).
  * Files are uploaded to the 'project-files' bucket in Supabase.
  */
+// ── Delete file ────────────────────────────────────────
+const { createClient } = require('@supabase/supabase-js');
 
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 const express = require('express');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
-const { createClient } = require('@supabase/supabase-js');
+
 const { getDB } = require('../db/database');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 router.use(authenticateToken);
 
-// ── Supabase Storage Client ───────────────────────────
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY   // Use SERVICE key for server-side uploads
-);
+
 const BUCKET_NAME = 'studentsubmission';
 
 // ── Multer (memory storage — we'll pass buffer to Supabase) ──
@@ -126,49 +128,34 @@ router.get('/:projectId', async (req, res) => {
 });
 
 // ── Delete file ────────────────────────────────────────
-// ── Delete file ────────────────────────────────────────
-router.delete('/:fileId', async (req, res) => {
-  const { fileId } = req.params;
 
+
+router.delete('/:id', async (req, res) => {
   try {
     const db = getDB();
 
-    console.log('🔥 DELETE FILE ROUTE HIT:', fileId);
+    // 1. Get all files of this project
+    const files = await db.prepare(
+      'SELECT object_name FROM files WHERE project_id = ?'
+    ).all(req.params.id);
 
-    // 1. Get file info from DB + verify user owns project
-    const file = await db.prepare(`
-      SELECT f.object_name, f.bucket_name
-      FROM files f
-      JOIN projects p ON f.project_id = p.project_id
-      WHERE f.file_id = ? AND p.user_id = ?
-    `).get(fileId, req.user.user_id);
+    // 2. Delete from Supabase bucket
+    const filePaths = files.map(f => f.object_name);
 
-    if (!file) {
-      return res.status(404).json({ error: 'File not found' });
+    if (filePaths.length > 0) {
+      await supabase.storage
+        .from('studentsubmission')   // your bucket name
+        .remove(filePaths);
     }
 
-    console.log('Deleting from Supabase:', file);
-
-    // 2. Delete from Supabase Storage
-    const { data, error } = await supabase.storage
-      .from(file.bucket_name || BUCKET_NAME)
-      .remove([file.object_name]);
-
-    console.log('Supabase delete response:', { data, error });
-
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
-
-    // 3. Delete DB record
+    // 3. Delete project (cascade deletes DB file records)
     await db.prepare(
-      'DELETE FROM files WHERE file_id = ?'
-    ).run(fileId);
+      'DELETE FROM projects WHERE project_id = ?'
+    ).run(req.params.id);
 
-    res.json({ success: true, deleted: data });
+    res.json({ message: 'Project + files deleted' });
 
   } catch (err) {
-    console.error('Delete file error:', err);
     res.status(500).json({ error: err.message });
   }
 });
