@@ -68,8 +68,32 @@ router.get('/:id', async (req, res) => {
     if (!project)
       return res.status(404).json({ error: 'Project not found' });
 
-    const files = await db.prepare('SELECT * FROM files WHERE project_id = ? ORDER BY uploaded_at DESC')
-                     .all(project.project_id);
+ const rawFiles = await db.prepare(`
+  SELECT * FROM files WHERE project_id = ? ORDER BY uploaded_at DESC
+`).all(project.project_id);
+
+const validFiles = [];
+
+for (const f of rawFiles) {
+  const path = f.object_name;
+
+  const { data } = await supabase.storage
+    .from(f.bucket_name || 'studentsubmission')
+    .list(path.split('/')[0], { search: path.split('/')[1] });
+
+  const exists = data && data.length > 0;
+
+  if (exists) {
+    validFiles.push(f);
+  } else {
+    console.log('⚠️ Removing ghost file from DB:', f.file_id);
+
+    // optional auto-clean
+    await db.prepare('DELETE FROM files WHERE file_id = ?').run(f.file_id);
+  }
+}
+
+res.json({ project, files: validFiles });
 
     res.json({ project, files });
   } catch (err) {

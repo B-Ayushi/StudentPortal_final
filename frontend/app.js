@@ -437,8 +437,7 @@ async function openProjectModal(projectId) {
               <div class="file-name">${escHtml(f.original_name)}</div>
               <div style="font-size:0.75rem;color:var(--text-muted)">${formatSize(f.file_size)} • ${formatDate(f.uploaded_at)}</div>
             </div>
-            <a href="${f.url}" target="_blank" class="btn btn-ghost" style="font-size:0.75rem;padding:4px 10px">⬇ Download</a>
-            <button class="btn" style="font-size:0.75rem;padding:4px 10px;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)" onclick="deleteFile('${f.file_id}', '${projectId}')">🗑</button>
+           <a href="${f.file_url || f.url}" download="${escHtml(f.original_name)}" class="btn btn-ghost" style="font-size:0.75rem;padding:4px 10px">⬇ Download</a><button class="btn" style="font-size:0.75rem;padding:4px 10px;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)" onclick="deleteFile('${f.file_id}', '${projectId}')">🗑</button>
           </div>`).join('')
       : '<p style="color:var(--text-muted);font-size:0.9rem">No files uploaded yet.</p>';
 
