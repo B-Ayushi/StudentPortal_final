@@ -472,15 +472,39 @@ async function openProjectModal(projectId) {
 }
 
 async function deleteFile(fileId, projectId) {
-  if (!confirm('Remove this file?')) return;
+  console.log('🗑  deleteFile called with:', { fileId, projectId });
+  if (!confirm('Remove this file?')) {
+    console.log('User cancelled deletion');
+    return;
+  }
+  
   try {
-    const res  = await fetch(`${API}/files/${fileId}`, { method: 'DELETE', headers: authHeaders() });
+    const url = `${API}/files/${fileId}`;
+    console.log('Sending DELETE request to:', url);
+    console.log('Auth headers:', authHeaders());
+    
+    const res = await fetch(url, { 
+      method: 'DELETE', 
+      headers: authHeaders() 
+    });
+    
+    console.log('Response status:', res.status);
+    console.log('Response ok:', res.ok);
+    
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
+    console.log('Response data:', data);
+    
+    if (!res.ok) {
+      console.error('Delete failed with status', res.status, ':', data.error);
+      throw new Error(data.error || `Delete failed (${res.status})`);
+    }
+    
+    console.log('✅ Delete successful!');
     showToast('File removed', 'success');
     openProjectModal(projectId);   // Refresh modal
     loadDashboard();
   } catch (err) {
+    console.error('❌ Delete error:', err.message);
     showToast(err.message, 'error');
   }
 }
