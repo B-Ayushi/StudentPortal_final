@@ -295,7 +295,17 @@ async function handleProjectSubmit(e) {
 // ═══════════════════════════════════════════════════
 
 async function handleFiles(files) {
-  if (!currentProjectId) return;
+  console.log('Uploading to project:', currentProjectId);
+
+  if (!currentProjectId) {
+    showToast('No project selected for upload', 'error');
+    return;
+  }
+
+  if (!files || files.length === 0) {
+    showToast('No files selected', 'error');
+    return;
+  }
 
   for (const file of files) {
     await uploadFile(file);
@@ -366,15 +376,21 @@ function resetSubmitForm() {
 }
 
 function goToUpload(projectId) {
-  currentProjectId = projectId;
-  // Go directly to step 2
   resetSubmitForm();
+
+  // IMPORTANT: set projectId AFTER resetSubmitForm()
+  // because resetSubmitForm() clears currentProjectId
+  currentProjectId = projectId;
+
   showPage('submit');
-  // skip to file step
+
   document.getElementById('submitStep1').classList.add('hidden');
   document.getElementById('submitStep2').classList.remove('hidden');
+  document.getElementById('submitStep3').classList.add('hidden');
+
   markStep(1, 'done');
   markStep(2, 'active');
+  markStep(3, '');
 }
 
 // ═══════════════════════════════════════════════════
@@ -624,3 +640,16 @@ document.addEventListener('DOMContentLoaded', () => {
     showPage('home');
   }
 });
+window.showPage = showPage;
+window.logout = logout;
+window.handleRegister = handleRegister;
+window.handleLogin = handleLogin;
+window.handleProjectSubmit = handleProjectSubmit;
+window.handleFiles = handleFiles;
+window.finishSubmission = finishSubmission;
+window.resetSubmitForm = resetSubmitForm;
+window.goToUpload = goToUpload;
+window.deleteProject = deleteProject;
+window.openProjectModal = openProjectModal;
+window.deleteFile = deleteFile;
+window.closeModal = closeModal;
