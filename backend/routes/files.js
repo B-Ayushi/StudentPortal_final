@@ -128,31 +128,6 @@ router.get('/:projectId', async (req, res) => {
 });
 
 // ── Delete file ────────────────────────────────────────
-router.delete('/debug/delete-hardcoded', async (req, res) => {
-  try {
-    const hardcodedPath = "2aba4047-b963-42da-b510-c44a60b05750/9da22075-fca1-4200-9585-f18b4cf264a5.png";
-    console.log('🔥 HARD DELETE TEST:', hardcodedPath);
-
-    const { data, error } = await supabase.storage
-      .from('studentsubmission')
-      .remove([hardcodedPath]);
-
-    console.log('Supabase response:', { data, error });
-
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
-
-    return res.json({
-      message: 'Hardcoded delete attempted',
-      path: hardcodedPath,
-      deleted: data
-    });
-
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-});
 
 router.delete('/:id', async (req, res) => {
   try {
