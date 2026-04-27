@@ -139,84 +139,107 @@ router.delete('/:fileId', async (req, res) => {
     if (!file) return res.status(404).json({ error: 'File not found' });
 
     const bucket = file.bucket_name || 'studentsubmission';
-    console.log('=== Starting Supabase Storage deletion ===');
+    console.log('\n\n════════════════════════════════════════');
+    console.log('🗑  DELETING FILE FROM SUPABASE STORAGE');
+    console.log('════════════════════════════════════════');
     console.log('file_id:', req.params.fileId);
     console.log('bucket_name:', bucket);
-    console.log('object_name:', file.object_name);
-    console.log('file_url:', file.file_url);
+    console.log('object_name from DB:', file.object_name);
+    console.log('file_url from DB:', file.file_url);
 
     let deleteResult = null;
     let deletedPath = null;
+    let storageDeleteFailed = false;
 
     // ─ Try deleting with object_name ─
+    console.log('\n→ Attempting deletion with object_name...');
     const { data: deleteData, error: deleteError } = await supabase.storage
       .from(bucket)
       .remove([file.object_name]);
 
-    console.log('First delete attempt (object_name):', { data: deleteData, error: deleteError });
+    console.log('Response from Supabase storage.remove():', {
+      data: deleteData,
+      error: deleteError ? deleteError.message : null,
+      success: !deleteError && deleteData && deleteData.length > 0
+    });
 
     if (deleteError) {
-      console.error('Error during first deletion:', deleteError.message);
-      return res.status(500).json({
-        error: `Supabase storage delete failed: ${deleteError.message}`
-      });
-    }
-
-    // Check if deletion succeeded
-    if (deleteData && deleteData.length > 0) {
+      console.error('❌ ERROR during storage deletion:', deleteError.message);
+      storageDeleteFailed = true;
+    } else if (deleteData && deleteData.length > 0) {
       deleteResult = deleteData;
       deletedPath = file.object_name;
-      console.log('Successfully deleted using object_name');
+      console.log('✅ Successfully deleted using object_name');
     } else {
       // ─ Fallback: extract path from file_url ─
-      console.log('object_name deletion returned empty, attempting fallback from file_url...');
+      console.log('\n→ object_name deletion returned empty array, trying fallback...');
       
       let extractedPath = null;
       if (file.file_url) {
-        // Extract path after '/object/public/studentsubmission/'
         const urlPattern = /\/object\/public\/[^/]+\/(.+)$/;
         const match = file.file_url.match(urlPattern);
         if (match) {
           extractedPath = match[1];
-          console.log('extracted_path_from_url:', extractedPath);
+          console.log('Extracted path from URL:', extractedPath);
 
+          console.log('→ Attempting deletion with extracted path...');
           const { data: fallbackData, error: fallbackError } = await supabase.storage
             .from(bucket)
             .remove([extractedPath]);
 
-          console.log('Second delete attempt (extracted path):', { data: fallbackData, error: fallbackError });
+          console.log('Response from Supabase storage.remove() [fallback]:', {
+            data: fallbackData,
+            error: fallbackError ? fallbackError.message : null,
+            success: !fallbackError && fallbackData && fallbackData.length > 0
+          });
 
           if (fallbackError) {
-            console.error('Error during fallback deletion:', fallbackError.message);
-            return res.status(500).json({
-              error: `Supabase storage delete failed during fallback: ${fallbackError.message}`
-            });
-          }
-
-          if (fallbackData && fallbackData.length > 0) {
+            console.error('❌ ERROR during fallback deletion:', fallbackError.message);
+            storageDeleteFailed = true;
+          } else if (fallbackData && fallbackData.length > 0) {
             deleteResult = fallbackData;
             deletedPath = extractedPath;
-            console.log('Successfully deleted using extracted path from URL');
+            console.log('✅ Successfully deleted using extracted path');
+          } else {
+            console.log('⚠️  Fallback deletion also returned empty array');
           }
+        } else {
+          console.log('⚠️  Could not extract path from URL pattern');
         }
-      }
-
-      // If still nothing deleted, return error
-      if (!deleteResult || deleteResult.length === 0) {
-        console.error('Path mismatch: No object was deleted from Supabase Storage');
-        return res.status(500).json({
-          error: 'Storage path mismatch: Could not delete file from Supabase Storage. Tried both object_name and extracted path from URL.',
-          tried_object_name: file.object_name,
-          tried_extracted_path: extractedPath || 'could not extract from URL'
-        });
+      } else {
+        console.log('⚠️  file_url is empty, cannot extract fallback path');
       }
     }
 
-    console.log('Supabase Storage deletion successful');
-    console.log('deleted_path:', deletedPath);
+    // Check final result
+    if (storageDeleteFailed) {
+      console.error('\n❌ STORAGE DELETE FAILED - NOT deleting DB row');
+      console.log('════════════════════════════════════════\n\n');
+      return res.status(500).json({
+        error: 'Supabase Storage deletion failed. Database row NOT deleted.',
+        details: 'Please check server logs for details.'
+      });
+    }
+
+    if (!deleteResult || deleteResult.length === 0) {
+      console.error('\n❌ PATH MISMATCH - No object was deleted from Supabase Storage');
+      console.log('════════════════════════════════════════\n\n');
+      return res.status(500).json({
+        error: 'Storage path mismatch: Could not delete file from Supabase Storage.',
+        tried_object_name: file.object_name,
+        debug: 'Check server logs for details'
+      });
+    }
+
+    console.log('\n✅ Supabase Storage deletion successful!');
+    console.log('Deleted path:', deletedPath);
+    console.log('Result:', deleteResult);
 
     // Only delete database row after successful Supabase deletion
+    console.log('\n→ Now deleting database row...');
     await db.prepare('DELETE FROM files WHERE file_id = ?').run(req.params.fileId);
+    console.log('✅ Database row deleted');
+    console.log('════════════════════════════════════════\n\n');
 
     res.json({
       message: 'File deleted from Supabase Storage and database',
@@ -224,7 +247,8 @@ router.delete('/:fileId', async (req, res) => {
       result: deleteResult
     });
   } catch (err) {
-    console.error('Delete file error:', err);
+    console.error('\n❌ EXCEPTION in delete route:', err);
+    console.log('════════════════════════════════════════\n\n');
     res.status(500).json({ error: err.message });
   }
 });
