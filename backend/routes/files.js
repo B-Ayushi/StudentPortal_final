@@ -130,8 +130,7 @@ router.get('/:projectId', async (req, res) => {
 // ── Delete file ────────────────────────────────────────
 router.delete('/debug/delete-hardcoded', async (req, res) => {
   try {
-    const hardcodedPath = "2aba4047-b963-42da-b510/9da22075-fca1-4200-9585-f18b4cf264a5.png";
-
+    const hardcodedPath = "2aba4047-b963-42da-b510-c44a60b05750/9da22075-fca1-4200-9585-f18b4cf264a5.png";
     console.log('🔥 HARD DELETE TEST:', hardcodedPath);
 
     const { data, error } = await supabase.storage
