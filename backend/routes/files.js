@@ -128,7 +128,8 @@ router.get('/:projectId', async (req, res) => {
 // ── Delete file ────────────────────────────────────────
 router.delete('/:fileId', async (req, res) => {
   try {
-    const db   = getDB();
+    const db = getDB();
+
     const file = await db.prepare(`
       SELECT f.* FROM files f
       JOIN projects p ON f.project_id = p.project_id
@@ -137,18 +138,24 @@ router.delete('/:fileId', async (req, res) => {
 
     if (!file) return res.status(404).json({ error: 'File not found' });
 
-    // Delete from Supabase Storage
-    const { error: deleteError } = await supabase.storage
-      .from(BUCKET_NAME)
+    const { data, error } = await supabase.storage
+      .from(file.bucket_name)
       .remove([file.object_name]);
 
-    if (deleteError) console.warn('Storage delete warning:', deleteError.message);
+    if (error) {
+      return res.status(500).json({
+        error: `Supabase storage delete failed: ${error.message}`
+      });
+    }
 
     await db.prepare('DELETE FROM files WHERE file_id = ?').run(req.params.fileId);
-    res.json({ message: 'File deleted successfully' });
+
+    res.json({
+      message: 'File deleted from Supabase Storage and database',
+      deleted: data
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 module.exports = router;
