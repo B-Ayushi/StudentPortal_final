@@ -1,6 +1,13 @@
 /**
  * routes/projects.js — All async for Supabase/PostgreSQL
  */
+// ── Delete project ────────────────────────────────────
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 const express  = require('express');
 const { v4: uuidv4 } = require('uuid');
@@ -99,16 +106,46 @@ router.put('/:id', async (req, res) => {
 });
 
 // ── Delete project ────────────────────────────────────
+
+
 router.delete('/:id', async (req, res) => {
   try {
     const db = getDB();
-    const project = await db.prepare('SELECT * FROM projects WHERE project_id = ? AND user_id = ?')
-                       .get(req.params.id, req.user.user_id);
-    if (!project)
-      return res.status(404).json({ error: 'Project not found' });
 
-    await db.prepare('DELETE FROM projects WHERE project_id = ?').run(req.params.id);
-    res.json({ message: 'Project deleted successfully' });
+    // 1. Get project
+    const project = await db.prepare(
+      'SELECT * FROM projects WHERE project_id = ? AND user_id = ?'
+    ).get(req.params.id, req.user.user_id);
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // 2. Get ALL files for this project
+    const files = await db.prepare(
+      'SELECT object_name FROM files WHERE project_id = ?'
+    ).all(req.params.id);
+
+    // 3. Delete files from Supabase bucket
+    const filePaths = files.map(f => f.object_name);
+
+    if (filePaths.length > 0) {
+      const { error } = await supabase.storage
+        .from('project-files')
+        .remove(filePaths);
+
+      if (error) {
+        console.warn('Storage delete error:', error.message);
+      }
+    }
+
+    // 4. Delete project (this will delete DB file records via CASCADE)
+    await db.prepare(
+      'DELETE FROM projects WHERE project_id = ?'
+    ).run(req.params.id);
+
+    res.json({ message: 'Project and files deleted successfully' });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

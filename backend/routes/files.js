@@ -9,9 +9,9 @@
  */
 
 const express = require('express');
-const multer  = require('multer');
+const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
-const path    = require('path');
+const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const { getDB } = require('../db/database');
 const { authenticateToken } = require('../middleware/auth');
@@ -55,12 +55,12 @@ router.post('/upload/:projectId', upload.single('file'), async (req, res) => {
 
     // Verify project belongs to user
     const project = await db.prepare('SELECT * FROM projects WHERE project_id = ? AND user_id = ?')
-                       .get(req.params.projectId, req.user.user_id);
+      .get(req.params.projectId, req.user.user_id);
     if (!project)
       return res.status(404).json({ error: 'Project not found or access denied' });
 
     // Generate a unique filename
-    const ext         = path.extname(req.file.originalname);
+    const ext = path.extname(req.file.originalname);
     const object_name = `${req.params.projectId}/${uuidv4()}${ext}`;
 
     // Upload to Supabase Storage bucket
@@ -79,7 +79,7 @@ router.post('/upload/:projectId', upload.single('file'), async (req, res) => {
       .getPublicUrl(object_name);
 
     const file_url = urlData.publicUrl;
-    const file_id  = uuidv4();
+    const file_id = uuidv4();
 
     // Save file record to database
     await db.prepare(`
@@ -112,12 +112,12 @@ router.get('/:projectId', async (req, res) => {
   try {
     const db = getDB();
     const project = await db.prepare('SELECT * FROM projects WHERE project_id = ? AND user_id = ?')
-                       .get(req.params.projectId, req.user.user_id);
+      .get(req.params.projectId, req.user.user_id);
     if (!project)
       return res.status(404).json({ error: 'Project not found' });
 
     const files = await db.prepare('SELECT * FROM files WHERE project_id = ? ORDER BY uploaded_at DESC')
-                     .all(req.params.projectId);
+      .all(req.params.projectId);
 
     res.json({ files });
   } catch (err) {
