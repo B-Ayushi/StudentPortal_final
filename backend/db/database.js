@@ -67,7 +67,7 @@ async function initSchema() {
         uploaded_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects(project_id) ON DELETE CASCADE
       );
-    `);
+    // `);
     console.log('✅ Database schema initialized');
   } finally {
     client.release();
